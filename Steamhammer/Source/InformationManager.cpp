@@ -555,28 +555,28 @@ const UnitData & InformationManager::getUnitData(BWAPI::Player player) const
     return _unitData.find(player)->second;
 }
 
+// This test is good for "can I benefit from detection?"
+// It doesn't measure urgency at all. DTs are more urgent than wraiths.
 bool InformationManager::enemyHasCloakedUnits()
 {
-    for (const auto & kv : getUnitData(_enemy).getUnits())
+	for (const auto & kv : getUnitData(_enemy).getUnits())
 	{
 		const UnitInfo & ui(kv.second);
 
-        if (ui.type.isCloakable())
-        {
-            return true;
-        }
-
-        // assume they're going dts
-        if (ui.type == BWAPI::UnitTypes::Protoss_Citadel_of_Adun)
-        {
-            return true;
-        }
-
-        if (ui.type == BWAPI::UnitTypes::Protoss_Observatory)
-        {
-            return true;
-        }
-    }
+		if (ui.type.hasPermanentCloak() ||                             // DT, observer
+			ui.type.isCloakable() ||                                   // wraith, ghost
+			ui.type == BWAPI::UnitTypes::Terran_Vulture_Spider_Mine ||
+			ui.type == BWAPI::UnitTypes::Protoss_Citadel_of_Adun ||    // assume DT
+			ui.type == BWAPI::UnitTypes::Protoss_Templar_Archives ||   // assume DT
+			ui.type == BWAPI::UnitTypes::Protoss_Observatory ||
+			ui.type == BWAPI::UnitTypes::Protoss_Arbiter_Tribunal ||
+			ui.type == BWAPI::UnitTypes::Protoss_Arbiter ||
+			ui.type == BWAPI::UnitTypes::Zerg_Lurker ||
+			ui.unit->isBurrowed())
+		{
+			return true;
+		}
+	}
 
 	return false;
 }

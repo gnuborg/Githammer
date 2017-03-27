@@ -8,7 +8,7 @@ namespace UAlbertaBot
 {
 class ScoutManager 
 {
-	BWAPI::Unit	        _workerScout;
+	BWAPI::Unit						_workerScout;
     std::string                     _scoutStatus;
     std::string                     _gasStealStatus;
 	int				                _numWorkerScouts;
@@ -24,8 +24,8 @@ class ScoutManager
     void                            gasSteal();
     int                             getClosestVertexIndex(BWAPI::Unit unit);
     BWAPI::Position                 getFleePosition();
-	BWAPI::Unit	        getEnemyGeyser();
-	BWAPI::Unit	        closestEnemyWorker();
+	BWAPI::Unit						getEnemyGeyser();
+	BWAPI::Unit						enemyWorkerToHarass();
     void                            followPerimeter();
 	void                            moveScouts();
     void                            drawScoutInformation(int x, int y);

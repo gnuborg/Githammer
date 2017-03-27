@@ -1,6 +1,9 @@
 #include "ProductionManager.h"
+#include "UnitUtil.h"
 
 using namespace UAlbertaBot;
+
+// This manager does not support protoss Mind Control.
 
 ProductionManager::ProductionManager() 
 	: _assignedWorkerForThisBuilding (false)
@@ -64,7 +67,7 @@ void ProductionManager::update()
 	{
         if (Config::Debug::DrawBuildOrderSearchInfo)
         {
-		    BWAPI::Broodwar->printf("Supply deadlock detected, building supply!");
+		    BWAPI::Broodwar->printf("Supply block, building supply!");
         }
 		_queue.queueAsHighestPriority(MetaType(BWAPI::Broodwar->self()->getRace().getSupplyProvider()), true);
 	}
@@ -196,7 +199,7 @@ void ProductionManager::manageBuildOrderQueue()
 		}
 		else 
 		{
-			// so break out
+			// can't skip it, so break out
 			break;
 		}
 	}
@@ -335,14 +338,16 @@ void ProductionManager::create(BWAPI::Unit producer, BuildOrderItem & item)
     MetaType t = item.metaType;
 
     // if we're dealing with a building
-    if (t.isUnit() && t.getUnitType().isBuilding() 
-        && t.getUnitType() != BWAPI::UnitTypes::Zerg_Lair 
-        && t.getUnitType() != BWAPI::UnitTypes::Zerg_Hive
-        && t.getUnitType() != BWAPI::UnitTypes::Zerg_Greater_Spire
-        && !t.getUnitType().isAddon())
-    {
-        // send the building task to the building manager
-        BuildingManager::Instance().addBuildingTask(t.getUnitType(), BWAPI::Broodwar->self()->getStartLocation(), item.isGasSteal);
+	if (t.isUnit() && t.getUnitType().isBuilding()
+		&& !UnitUtil::IsMorphedBuildingType(t.getUnitType())  // morphed from another building, not built
+		&& !t.getUnitType().isAddon())
+	{
+		// By default, build in the main base.
+		// BuildingManager will override the location if it needs to.
+		// Otherwise it will find some spot near desiredLocation.
+		BWAPI::TilePosition desiredLocation = BWAPI::Broodwar->self()->getStartLocation();
+
+		BuildingManager::Instance().addBuildingTask(t.getUnitType(), desiredLocation, item.isGasSteal);
     }
     else if (t.getUnitType().isAddon())
     {
@@ -375,7 +380,7 @@ void ProductionManager::create(BWAPI::Unit producer, BuildOrderItem & item)
     }
     else
     {	
-		
+		UAB_ASSERT(false, "ProductionManager::create don't know how to create that");
     }
 }
 
@@ -410,7 +415,7 @@ bool ProductionManager::canMakeNow(BWAPI::Unit producer, MetaType t)
 bool ProductionManager::detectBuildOrderDeadlock()
 {
 	// if the _queue is empty there is no deadlock
-	if (_queue.size() == 0 || BWAPI::Broodwar->self()->supplyTotal() >= 390)
+	if (_queue.size() == 0 || BWAPI::Broodwar->self()->supplyTotal() >= 400)
 	{
 		return false;
 	}
@@ -418,17 +423,17 @@ bool ProductionManager::detectBuildOrderDeadlock()
 	// are any supply providers being built currently
 	bool supplyInProgress =	BuildingManager::Instance().isBeingBuilt(BWAPI::Broodwar->self()->getRace().getSupplyProvider());
 
-    for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-    {
-        if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg)
-        {
-            if (unit->getBuildType() == BWAPI::UnitTypes::Zerg_Overlord)
-            {
-                supplyInProgress = true;
-                break;
-            }
-        }
-    }
+	if (!supplyInProgress && BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Zerg) {
+		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg
+				&& unit->getBuildType() == BWAPI::UnitTypes::Zerg_Overlord)
+			{
+				supplyInProgress = true;
+				break;
+			}
+		}
+	}
 
 	// does the current item being built require more supply
     
@@ -436,10 +441,13 @@ bool ProductionManager::detectBuildOrderDeadlock()
 	int supplyAvailable		= std::max(0, BWAPI::Broodwar->self()->supplyTotal() - BWAPI::Broodwar->self()->supplyUsed());
 
 	// if we don't have enough supply and none is being built, there's a deadlock
-	if ((supplyAvailable < supplyCost) && !supplyInProgress)
+	if (!supplyInProgress && supplyAvailable < supplyCost)
 	{
-        // if we're zerg, check to see if a building is planned to be built
-        if (BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Zerg && BuildingManager::Instance().buildingsQueued().size() > 0)
+        // If we're zerg, check to see if a building is planned to be built.
+		// Only count it as releasing supply very early in the game.
+        if (BWAPI::Broodwar->self()->getRace() == BWAPI::Races::Zerg
+			&& BuildingManager::Instance().buildingsQueued().size() > 0
+			&& BWAPI::Broodwar->self()->supplyTotal() <= 18)
         {
             return false;
         }
@@ -673,7 +681,7 @@ void ProductionManager::queueGasSteal()
     _queue.queueAsHighestPriority(MetaType(BWAPI::Broodwar->self()->getRace().getRefinery()), true, true);
 }
 
-// this will return true if any unit is on the first frame if it's training time remaining
+// this will return true if any unit is on the first frame of its training time remaining
 // this can cause issues for the build order search system so don't plan a search on these frames
 bool ProductionManager::canPlanBuildOrderNow() const
 {

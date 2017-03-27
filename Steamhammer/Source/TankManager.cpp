@@ -21,12 +21,8 @@ void TankManager::executeMicro(const BWAPI::Unitset & targets)
 
 
 
-	// for each zealot
 	for (auto & tank : tanks)
 	{
-		// train sub units such as scarabs or interceptors
-		//trainSubUnits(rangedUnit);
-
         bool tankNearChokepoint = false; 
         for (auto & choke : BWTA::getChokepoints())
         {

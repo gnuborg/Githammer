@@ -2,6 +2,27 @@
 
 using namespace UAlbertaBot;
 
+bool UnitUtil::IsResourceDepotType(BWAPI::UnitType type)
+{
+	return
+		type == BWAPI::UnitTypes::Terran_Command_Center ||
+		type == BWAPI::UnitTypes::Protoss_Nexus ||
+		type == BWAPI::UnitTypes::Zerg_Hatchery ||
+		type == BWAPI::UnitTypes::Zerg_Lair ||
+		type == BWAPI::UnitTypes::Zerg_Hive;
+}
+
+// Building morphed from another, not constructed.
+bool UnitUtil::IsMorphedBuildingType(BWAPI::UnitType type)
+{
+	return
+		type == BWAPI::UnitTypes::Zerg_Sunken_Colony ||
+		type == BWAPI::UnitTypes::Zerg_Spore_Colony ||
+		type == BWAPI::UnitTypes::Zerg_Lair ||
+		type == BWAPI::UnitTypes::Zerg_Hive ||
+		type == BWAPI::UnitTypes::Zerg_Greater_Spire;
+}
+
 bool UnitUtil::IsCombatUnit(BWAPI::Unit unit)
 {
     UAB_ASSERT(unit != nullptr, "Unit was null");
@@ -31,24 +52,13 @@ bool UnitUtil::IsCombatUnit(BWAPI::Unit unit)
 
 bool UnitUtil::IsValidUnit(BWAPI::Unit unit)
 {
-    if (!unit)
-    {
-        return false;
-    }
-
-    if (unit->isCompleted() 
+    return unit
+		&& unit->exists()
+		&& unit->isCompleted()
         && unit->getHitPoints() > 0 
-        && unit->exists() 
         && unit->getType() != BWAPI::UnitTypes::Unknown 
         && unit->getPosition().x != BWAPI::Positions::Unknown.x 
-        && unit->getPosition().y != BWAPI::Positions::Unknown.y) 
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+		&& unit->getPosition().y != BWAPI::Positions::Unknown.y;
 }
 
 Rect UnitUtil::GetRect(BWAPI::Unit unit)

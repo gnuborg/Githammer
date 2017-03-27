@@ -7,20 +7,20 @@ namespace Config
     {
         bool ConfigFileFound                = false;
         bool ConfigFileParsed               = false;
-        std::string ConfigFileLocation      = "bwapi-data/AI/UAlbertaBot_Config.txt";
+        std::string ConfigFileLocation      = "bwapi-data/AI/Steamhammer_Config.json";
     }
 
     namespace Strategy
     {
-        std::string ProtossStrategyName     = "Protoss_ZealotRush";
-        std::string TerranStrategyName      = "Terran_MarineRush";
-        std::string ZergStrategyName        = "Zerg_3HatchMuta";
-        std::string StrategyName            = "Protoss_ZealotRush";
+        std::string ProtossStrategyName     = "Protoss_DragoonRush";  // default
+        std::string TerranStrategyName      = "Terran_TankPush";      // default
+        std::string ZergStrategyName        = "Zerg_3HatchMuta";      // default
+        std::string StrategyName            = "Zerg_3HatchMuta";
         std::string ReadDir                 = "bwapi-data/read/";
         std::string WriteDir                = "bwapi-data/write/";
         bool GasStealWithScout              = false;
         bool ScoutHarassEnemy               = true;
-        bool UseEnemySpecificStrategy       = false;
+        bool UseEnemySpecificStrategy       = true;
         bool FoundEnemySpecificStrategy     = false;
     }
 
@@ -41,8 +41,8 @@ namespace Config
 
     namespace BotInfo
     {
-        std::string BotName                 = "UAlbertaBot";
-        std::string Authors                 = "Dave Churchill";
+        std::string BotName                 = "Steamhammer";
+        std::string Authors                 = "Jay Scott";
         bool PrintInfoOnStart               = false;
     }
 
@@ -81,7 +81,7 @@ namespace Config
         bool DrawBOSSStateInfo              = false;
         bool PrintModuleTimeout             = false;	
 
-        std::string ErrorLogFilename        = "UAB_ErrorLog.txt";
+        std::string ErrorLogFilename        = "Steamhammer_ErrorLog.txt";
         bool LogAssertToErrorFile           = false;
 
         BWAPI::Color ColorLineTarget        = BWAPI::Colors::White;

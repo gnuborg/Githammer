@@ -8,7 +8,7 @@ namespace UAlbertaBot
 {
 struct BuildOrderItem
 {
-    MetaType			metaType;		// the thing we want to 'build'
+    MetaType			metaType;	// the thing we want to 'build'
     int					priority;	// the priority at which to place it in the queue
     bool				blocking;	// whether or not we block further items
     bool                isGasSteal;
@@ -46,12 +46,12 @@ public:
     void queueAsHighestPriority(MetaType m,bool blocking,bool gasSteal = false);		// queues something at the highest priority
     void queueAsLowestPriority(MetaType m,bool blocking);		// queues something at the lowest priority
     void queueItem(BuildOrderItem b);			// queues something with a given priority
-    void removeHighestPriorityItem();								// removes the highest priority item
+    void removeHighestPriorityItem();							// removes the highest priority item
     void removeCurrentHighestPriorityItem();
 
     int getHighestPriorityValue();								// returns the highest priority value
     int	getLowestPriorityValue();								// returns the lowest priority value
-    size_t size();													// returns the size of the queue
+    size_t size();												// returns the size of the queue
 
     bool isEmpty();
 

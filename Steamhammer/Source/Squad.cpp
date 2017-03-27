@@ -56,6 +56,7 @@ void Squad::update()
         
 		_meleeManager.regroup(regroupPosition);
 		_rangedManager.regroup(regroupPosition);
+		_lurkerManager.regroup(regroupPosition);
         _tankManager.regroup(regroupPosition);
         _medicManager.regroup(regroupPosition);
 	}
@@ -63,7 +64,8 @@ void Squad::update()
 	{
 		_meleeManager.execute(_order);
 		_rangedManager.execute(_order);
-        _tankManager.execute(_order);
+		_lurkerManager.execute(_order);
+		_tankManager.execute(_order);
         _medicManager.execute(_order);
 		_transportManager.update();
 
@@ -126,13 +128,9 @@ void Squad::setNearEnemyUnits()
 		int bottom = unit->getType().dimensionDown();
 
 		_nearEnemy[unit] = unitNearEnemy(unit);
-		if (_nearEnemy[unit])
-		{
-			if (Config::Debug::DrawSquadInfo) BWAPI::Broodwar->drawBoxMap(x-left, y - top, x + right, y + bottom, Config::Debug::ColorUnitNearEnemy);
-		}
-		else
-		{
-			if (Config::Debug::DrawSquadInfo) BWAPI::Broodwar->drawBoxMap(x-left, y - top, x + right, y + bottom, Config::Debug::ColorUnitNotNearEnemy);
+		if (Config::Debug::DrawSquadInfo) {
+			BWAPI::Broodwar->drawBoxMap(x - left, y - top, x + right, y + bottom,
+				(_nearEnemy[unit]) ? Config::Debug::ColorUnitNearEnemy : Config::Debug::ColorUnitNotNearEnemy);
 		}
 	}
 }
@@ -143,6 +141,7 @@ void Squad::addUnitsToMicroManagers()
 	BWAPI::Unitset rangedUnits;
 	BWAPI::Unitset detectorUnits;
 	BWAPI::Unitset transportUnits;
+	BWAPI::Unitset lurkerUnits;
     BWAPI::Unitset tankUnits;
     BWAPI::Unitset medicUnits;
 
@@ -151,12 +150,16 @@ void Squad::addUnitsToMicroManagers()
 	{
 		if(unit->isCompleted() && unit->getHitPoints() > 0 && unit->exists())
 		{
-			// select dector _units
+			// select detector _units
             if (unit->getType() == BWAPI::UnitTypes::Terran_Medic)
             {
                 medicUnits.insert(unit);
             }
-            else if (unit->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode || unit->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode)
+			else if (unit->getType() == BWAPI::UnitTypes::Zerg_Lurker)
+			{
+				lurkerUnits.insert(unit);
+			}
+			else if (unit->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode || unit->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode)
             {
                 tankUnits.insert(unit);
             }   
@@ -186,7 +189,8 @@ void Squad::addUnitsToMicroManagers()
 	_rangedManager.setUnits(rangedUnits);
 	_detectorManager.setUnits(detectorUnits);
 	_transportManager.setUnits(transportUnits);
-    _tankManager.setUnits(tankUnits);
+	_lurkerManager.setUnits(lurkerUnits);
+	_tankManager.setUnits(tankUnits);
     _medicManager.setUnits(medicUnits);
 }
 

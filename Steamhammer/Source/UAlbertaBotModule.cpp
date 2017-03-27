@@ -1,14 +1,8 @@
 /* 
- +----------------------------------------------------------------------+
- | UAlbertaBot                                                          |
- +----------------------------------------------------------------------+
- | University of Alberta - AIIDE StarCraft Competition                  |
- +----------------------------------------------------------------------+
- |                                                                      |
- +----------------------------------------------------------------------+
- | Author: David Churchill <dave.churchill@gmail.com>                   |
- +----------------------------------------------------------------------+
-*/
+ *----------------------------------------------------------------------
+ * Steamhammer
+ *----------------------------------------------------------------------
+ */
 
 #include "Common.h"
 #include "UAlbertaBotModule.h"
@@ -47,7 +41,7 @@ void UAlbertaBotModule::onStart()
 
     if (Config::BotInfo::PrintInfoOnStart)
     {
-        BWAPI::Broodwar->printf("Hello! I am %s, written by %s", Config::BotInfo::BotName.c_str(), Config::BotInfo::Authors.c_str());
+        BWAPI::Broodwar->printf("%s by %s, based on UAlbertaBot", Config::BotInfo::BotName.c_str(), Config::BotInfo::Authors.c_str());
     }
 
     // Call BWTA to read and analyze the current map

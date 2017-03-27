@@ -33,6 +33,7 @@ public:
 	bool    isCommand()	    const;
 	bool    isBuilding()	const;
 	bool    isRefinery()	const;
+	bool	isSupply()		const;
     
     const size_t & type() const;
     const BWAPI::Race & getRace() const;

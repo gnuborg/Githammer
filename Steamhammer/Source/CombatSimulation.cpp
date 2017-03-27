@@ -37,7 +37,7 @@ void CombatSimulation::setCombatUnits(const BWAPI::Position & center, const int 
             catch (int e)
             {
                 e=1;
-                BWAPI::Broodwar->printf("Problem Adding Self Unit with ID: %d", unit->getID());
+                //BWAPI::Broodwar->printf("Problem Adding Self Unit with ID: %d", unit->getID());
             }
 		}
 	}
@@ -79,7 +79,7 @@ void CombatSimulation::setCombatUnits(const BWAPI::Position & center, const int 
             }
             catch (int e)
             {
-                BWAPI::Broodwar->printf("Problem Adding Enemy Unit with ID: %d %d", ui.unitID, e);
+                //BWAPI::Broodwar->printf("Problem Adding Enemy Unit with ID: %d %d", ui.unitID, e);
             }
 		}
 	}

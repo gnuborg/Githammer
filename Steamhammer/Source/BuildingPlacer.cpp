@@ -190,27 +190,15 @@ bool BuildingPlacer::canBuildHereWithSpace(BWAPI::TilePosition position,const Bu
     return true;
 }
 
-BWAPI::TilePosition BuildingPlacer::GetBuildLocation(const Building & b,int padding) const
-{
-    return BWAPI::TilePosition(0,0);
-}
-
 BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b,int buildDist,bool horizontalOnly) const
 {
     SparCraft::Timer t;
     t.start();
 
-    // get the precomputed vector of tile positions which are sorted closes to this location
+    // get the precomputed vector of tile positions which are sorted closest to this location
     const std::vector<BWAPI::TilePosition> & closestToBuilding = MapTools::Instance().getClosestTilesTo(BWAPI::Position(b.desiredPosition));
 
     double ms1 = t.getElapsedTimeInMilliSec();
-
-    // special easy case of having no pylons
-    int numPylons = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Protoss_Pylon);
-    if (b.type.requiresPsi() && numPylons == 0)
-    {
-        return BWAPI::TilePositions::None;
-    }
 
     // iterate through the list until we've found a suitable location
     for (size_t i(0); i < closestToBuilding.size(); ++i)
@@ -230,7 +218,71 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b,int 
     return  BWAPI::TilePositions::None;
 }
 
-bool BuildingPlacer::tileOverlapsBaseLocation(BWAPI::TilePosition tile,BWAPI::UnitType type) const
+// For cannons and sunkens. Probably good for bunkers too (fix the assert below).
+// STATUS works but WAY too slow
+BWAPI::TilePosition BuildingPlacer::getDefenseBuildLocation(const Building & b, int buildDist) const
+{
+	if (   b.type != BWAPI::UnitTypes::Protoss_Photon_Cannon
+		&& b.type != BWAPI::UnitTypes::Zerg_Creep_Colony)
+	{
+		UAB_ASSERT(false, "non-defense building");
+		return BWAPI::TilePositions::None;
+	}
+
+	SparCraft::Timer t;
+	t.start();
+
+	BWTA::Chokepoint * choke = BWTA::getNearestChokepoint(b.desiredPosition);
+
+	// get the precomputed vector of tile positions which are sorted closest to this location
+	const std::vector<BWAPI::TilePosition> & closestToBuilding = MapTools::Instance().getClosestTilesTo(BWAPI::Position(b.desiredPosition));
+
+	double ms1 = t.getElapsedTimeInMilliSec();
+
+	BWAPI::Broodwar->printf("Sunken Placer : %d positions to check", closestToBuilding.size());
+	UAB_ASSERT(false, "start");
+
+	int closestDistance = 99999;
+	int closestIndex = -1;
+
+	// iterate through the list to find the closest location
+	for (size_t i(0); i < std::min(closestToBuilding.size(), (size_t) 200); ++i)
+	//for (size_t i(0); i < closestToBuilding.size(); ++i)
+	{
+		//if (!BWAPI::Broodwar->hasCreep(closestToBuilding[i])) {
+		//	continue;
+		//}
+		if (canBuildHereWithSpace(closestToBuilding[i], b, buildDist))
+		{
+			UAB_ASSERT(false, "can build");
+			int distance = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), choke->getCenter());
+			if (distance < closestDistance) {
+				UAB_ASSERT(false, "closer");
+				BWAPI::Broodwar->printf("Sunken Placer : distance %d", distance);
+				closestDistance = distance;
+				closestIndex = i;
+				if (distance <= 6) {
+					// Good enough.
+					break;
+				}
+			}
+		}
+	}
+	UAB_ASSERT(false, "after loop");
+	if (closestIndex != -1) {
+		double ms = t.getElapsedTimeInMilliSec();
+		BWAPI::Broodwar->printf("Sunken Placer succeeded, taking %lf ms, %lf setup ms", ms, ms1);
+
+		return closestToBuilding[closestIndex];
+	}
+
+	double ms = t.getElapsedTimeInMilliSec();
+	BWAPI::Broodwar->printf("Sunker Placer failed in %lf ms", ms);
+
+	return  BWAPI::TilePositions::None;
+}
+
+bool BuildingPlacer::tileOverlapsBaseLocation(BWAPI::TilePosition tile, BWAPI::UnitType type) const
 {
     // if it's a resource depot we don't care if it overlaps
     if (type.isResourceDepot())

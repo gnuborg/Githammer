@@ -121,12 +121,12 @@ void ScoutManager::moveScouts()
 		// if the scout is in the enemy region
 		if (scoutInRangeOfenemy)
 		{
-			// get the closest enemy worker
-			BWAPI::Unit closestWorker = closestEnemyWorker();
-
 			// if the worker scout is not under attack
 			if (!_scoutUnderAttack)
 			{
+				// get the closest enemy worker
+				BWAPI::Unit closestWorker = enemyWorkerToHarass();
+
 				// if there is a worker nearby, harass it
 				if (Config::Strategy::ScoutHarassEnemy && (!Config::Strategy::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
 				{
@@ -240,12 +240,12 @@ void ScoutManager::gasSteal()
     }
 }
 
-BWAPI::Unit ScoutManager::closestEnemyWorker()
+// Choose an enemy worker to harass, or none.
+BWAPI::Unit ScoutManager::enemyWorkerToHarass()
 {
 	BWAPI::Unit enemyWorker = nullptr;
 	double maxDist = 0;
 
-	
 	BWAPI::Unit geyser = getEnemyGeyser();
 	
 	for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
@@ -255,6 +255,10 @@ BWAPI::Unit ScoutManager::closestEnemyWorker()
 			return unit;
 		}
 	}
+
+	// Only harass terran SCVs that are building, no other workers.
+	// Conclusion: Doesn't help. Scout dies if counterattacked at all.
+	// return nullptr;
 
 	// for each enemy worker
 	for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())

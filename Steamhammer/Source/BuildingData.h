@@ -11,7 +11,7 @@ namespace BuildingStatus
 }
 
 class Building 
-{     
+{
 public:
       
 	BWAPI::TilePosition     desiredPosition;

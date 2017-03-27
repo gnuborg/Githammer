@@ -34,7 +34,7 @@ void DFBB_BuildOrderSmartSearch::doSearch()
         _params.relevantActions             = _relevantActions;
         _params.searchTimeLimit             = _searchTimeLimit;
 
-        //BWAPI::Broodwar->printf("Constructing new search object time limit is %lf", _params.searchTimeLimit);
+        // BWAPI::Broodwar->printf("Constructing new search object time limit is %lf", _params.searchTimeLimit);
         _stackSearch = DFBB_BuildOrderStackSearch(_params);
         _stackSearch.search();
     }

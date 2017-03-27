@@ -9,8 +9,39 @@ using namespace UAlbertaBot;
 void ParseUtils::ParseConfigFile(const std::string & filename)
 {
     rapidjson::Document doc;
-    BWAPI::Race race = BWAPI::Broodwar->self()->getRace();
-    const char * ourRace = race.getName().c_str();
+
+	// Calculate our race and the matchup as C strings.
+	// The race is spelled out: Terran Protoss Zerg
+	// The matchup is abbreviated: TvZ
+	// The enemy matchup may be "Unknown", so TvU PvU ZvU are possible.
+	// This is done by hand in a stupid way to work around crashes. :-(
+    //BWAPI::Race us = BWAPI::Broodwar->self()->getRace();
+	//BWAPI::Race them = BWAPI::Broodwar->enemy()->getRace();
+
+	//const std::string matchupStr = "ZvZ"; //  us.getName()[0] + "v" + them.getName()[0];
+	//const char * matchup = "ZvZ"; // matchupStr.c_str();
+
+	const char * ourRace = "Zerg"; // us.getName().c_str();
+	char * matchup; // matchupStr.c_str();
+
+	if (BWAPI::Broodwar->enemy()) {
+		BWAPI::Race them = BWAPI::Broodwar->enemy()->getRace();
+		if (them == BWAPI::Races::Terran) {
+			matchup = "ZvT";
+		}
+		else if (them == BWAPI::Races::Protoss) {
+			matchup = "ZvP";
+		}
+		else if (them == BWAPI::Races::Zerg) {
+			matchup = "ZvZ";
+		}
+		else {
+			matchup = "ZvU";
+		}
+	}
+
+	//BWAPI::Broodwar->printf("us %s, them %s", us.getName(), them.getName());
+	//BWAPI::Broodwar->printf("race %s, matchup %s", ourRace, matchup);
 
     std::string config = FileUtils::ReadFile(filename);
 
@@ -80,7 +111,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         const rapidjson::Value & macro = doc["Macro"];
         JSONTools::ReadInt("BOSSFrameLimit", macro, Config::Macro::BOSSFrameLimit);
         JSONTools::ReadInt("BuildingSpacing", macro, Config::Macro::BuildingSpacing);
-        JSONTools::ReadInt("PylongSpacing", macro, Config::Macro::PylonSpacing);
+        JSONTools::ReadInt("PylonSpacing", macro, Config::Macro::PylonSpacing);
         JSONTools::ReadInt("WorkersPerRefinery", macro, Config::Macro::WorkersPerRefinery);
     }
 
@@ -144,11 +175,15 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadString("ReadDirectory", strategy, Config::Strategy::ReadDir);
         JSONTools::ReadString("WriteDirectory", strategy, Config::Strategy::WriteDir);
 
-        // if we have set a strategy for the current race, use it
-        if (strategy.HasMember(race.c_str()) && strategy[race.c_str()].IsString())
+        // If we have set a strategy for the current matchup, use it.
+		if (strategy.HasMember(matchup) && strategy[matchup].IsString())
         {
-            Config::Strategy::StrategyName = strategy[race.c_str()].GetString();
-        }
+			Config::Strategy::StrategyName = strategy[matchup].GetString();
+		}
+		// Failing that, look for a strategy for the current race.
+		else if (strategy.HasMember(ourRace) && strategy[ourRace].IsString()) {
+			Config::Strategy::StrategyName = strategy[ourRace].GetString();
+		}
 
         // check if we are using an enemy specific strategy
         JSONTools::ReadBool("UseEnemySpecificStrategy", strategy, Config::Strategy::UseEnemySpecificStrategy);
@@ -179,7 +214,6 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
             {
                 const std::string &         name = itr->name.GetString();
                 const rapidjson::Value &    val  = itr->value;
-        
 
                 BWAPI::Race strategyRace;
                 if (val.HasMember("Race") && val["Race"].IsString())

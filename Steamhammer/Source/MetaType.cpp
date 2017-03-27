@@ -121,6 +121,14 @@ bool MetaType::isRefinery()	const
     return isBuilding() && _unitType.isRefinery(); 
 }
 
+bool MetaType::isSupply()	const
+{
+	return isUnit() &&
+		(  _unitType == BWAPI::UnitTypes::Terran_Supply_Depot
+		|| _unitType == BWAPI::UnitTypes::Protoss_Pylon
+		|| _unitType == BWAPI::UnitTypes::Zerg_Overlord);
+}
+
 const BWAPI::UnitType & MetaType::getUnitType() const
 {
     return _unitType;

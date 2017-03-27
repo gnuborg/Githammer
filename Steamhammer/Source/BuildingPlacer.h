@@ -33,8 +33,6 @@ public:
     bool					tileOverlapsBaseLocation(BWAPI::TilePosition tile,BWAPI::UnitType type) const;
     bool                    tileBlocksAddon(BWAPI::TilePosition position) const;
 
-    BWAPI::TilePosition		GetBuildLocation(const Building & b,int padding) const;
-
     // determines whether we can build at a given location
     bool					canBuildHere(BWAPI::TilePosition position,const Building & b) const;
     bool					canBuildHereWithSpace(BWAPI::TilePosition position,const Building & b,int buildDist,bool horizontalOnly = false) const;
@@ -42,7 +40,10 @@ public:
     // returns a build location near a building's desired location
     BWAPI::TilePosition		getBuildLocationNear(const Building & b,int buildDist,bool horizontalOnly = false) const;
 
-    void					reserveTiles(BWAPI::TilePosition position,int width,int height);
+	// returns a build location near the closest chokepoint
+	BWAPI::TilePosition		getDefenseBuildLocation(const Building & b, int buildDist) const;
+
+	void					reserveTiles(BWAPI::TilePosition position, int width, int height);
     void					freeTiles(BWAPI::TilePosition position,int width,int height);
 
     void					drawReservedTiles();

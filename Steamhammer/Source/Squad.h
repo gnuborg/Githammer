@@ -1,15 +1,17 @@
 #pragma once
 
 #include "Common.h"
-#include "MeleeManager.h"
-#include "RangedManager.h"
-#include "DetectorManager.h"
-#include "TransportManager.h"
-#include "SquadOrder.h"
 #include "DistanceMap.hpp"
 #include "StrategyManager.h"
 #include "CombatSimulation.h"
+#include "SquadOrder.h"
+
+#include "MeleeManager.h"
+#include "RangedManager.h"
+#include "DetectorManager.h"
+#include "LurkerManager.h"
 #include "TankManager.h"
+#include "TransportManager.h"
 #include "MedicManager.h"
 
 namespace UAlbertaBot
@@ -28,8 +30,9 @@ class Squad
 	MeleeManager        _meleeManager;
 	RangedManager       _rangedManager;
 	DetectorManager     _detectorManager;
+	LurkerManager       _lurkerManager;
+	TankManager         _tankManager;
 	TransportManager    _transportManager;
-    TankManager         _tankManager;
     MedicManager        _medicManager;
 
 	std::map<BWAPI::Unit, bool>	_nearEnemy;
@@ -38,14 +41,14 @@ class Squad
 	BWAPI::Unit		getRegroupUnit();
 	BWAPI::Unit		unitClosestToEnemy();
     
-	void                        updateUnits();
-	void                        addUnitsToMicroManagers();
-	void                        setNearEnemyUnits();
-	void                        setAllUnits();
+	void			updateUnits();
+	void			addUnitsToMicroManagers();
+	void			setNearEnemyUnits();
+	void			setAllUnits();
 	
-	bool                        unitNearEnemy(BWAPI::Unit unit);
-	bool                        needsToRegroup();
-	int                         squadUnitsNear(BWAPI::Position p);
+	bool			unitNearEnemy(BWAPI::Unit unit);
+	bool			needsToRegroup();
+	int				squadUnitsNear(BWAPI::Position p);
 
 public:
 

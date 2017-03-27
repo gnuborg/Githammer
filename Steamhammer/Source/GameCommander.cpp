@@ -34,7 +34,6 @@ void GameCommander::update()
 	BOSSManager::Instance().update(35 - _timerManager.getTotalElapsed());
 	_timerManager.stopTimer(TimerManager::Search);
 
-	// economy and base managers
 	_timerManager.startTimer(TimerManager::Worker);
 	WorkerManager::Instance().update();
 	_timerManager.stopTimer(TimerManager::Worker);
@@ -47,7 +46,6 @@ void GameCommander::update()
 	BuildingManager::Instance().update();
 	_timerManager.stopTimer(TimerManager::Building);
 
-	// combat and scouting managers
 	_timerManager.startTimer(TimerManager::Combat);
 	_combatCommander.update(_combatUnits);
 	_timerManager.stopTimer(TimerManager::Combat);
@@ -87,7 +85,12 @@ void GameCommander::drawDebugInterface()
 
 void GameCommander::drawGameInformation(int x, int y)
 {
-    BWAPI::Broodwar->drawTextScreen(x, y, "\x04Players:");
+	if (!Config::Debug::DrawGameInfo)
+	{
+		return;
+	}
+
+	BWAPI::Broodwar->drawTextScreen(x, y, "\x04Players:");
 	BWAPI::Broodwar->drawTextScreen(x+50, y, "%c%s \x04vs. %c%s", BWAPI::Broodwar->self()->getTextColor(), BWAPI::Broodwar->self()->getName().c_str(), 
                                                                   BWAPI::Broodwar->enemy()->getTextColor(), BWAPI::Broodwar->enemy()->getName().c_str());
 	y += 12;
@@ -174,6 +177,8 @@ void GameCommander::setCombatUnits()
 	}
 }
 
+// Get the first spawning pool, supply depot, or pylon.
+// This is the timing of the initial scout. It has nothing to do with supply.
 BWAPI::Unit GameCommander::getFirstSupplyProvider()
 {
 	BWAPI::Unit supplyProvider = nullptr;
@@ -263,6 +268,7 @@ BWAPI::Unit GameCommander::getClosestUnitToTarget(BWAPI::UnitType type, BWAPI::P
 	return closestUnit;
 }
 
+// Used only to choose a worker to scout.
 BWAPI::Unit GameCommander::getClosestWorkerToTarget(BWAPI::Position target)
 {
 	BWAPI::Unit closestUnit = nullptr;
@@ -270,7 +276,11 @@ BWAPI::Unit GameCommander::getClosestWorkerToTarget(BWAPI::Position target)
 
 	for (auto & unit : _validUnits)
 	{
-		if (!isAssigned(unit) && unit->getType().isWorker() && WorkerManager::Instance().isFree(unit))
+		if (!isAssigned(unit)
+			&& unit->getType().isWorker()
+			&& WorkerManager::Instance().isFree(unit)
+			&& !unit->isCarryingMinerals()
+			&& !unit->isCarryingGas())
 		{
 			double dist = unit->getDistance(target);
 			if (!closestUnit || dist < closestDist)

@@ -63,6 +63,7 @@ void BuildingManager::validateWorkersAndBuildings()
 }
 
 // STEP 2: ASSIGN WORKERS TO BUILDINGS WITHOUT THEM
+// Also places the building.
 void BuildingManager::assignWorkersToUnassignedBuildings()
 {
     // for each building that doesn't have a builder, assign one
@@ -80,7 +81,7 @@ void BuildingManager::assignWorkersToUnassignedBuildings()
 
         if (workerToAssign)
         {
-            //BWAPI::Broodwar->printf("VALID WORKER BEING ASSIGNED: %d", workerToAssign->getID());
+            // BWAPI::Broodwar->printf("VALID WORKER BEING ASSIGNED: %d", workerToAssign->getID());
 
             // TODO: special case of terran building whose worker died mid construction
             //       send the right click command to the buildingUnit to resume construction
@@ -123,7 +124,7 @@ void BuildingManager::constructAssignedBuildings()
                 Micro::SmartMove(b.builderUnit,BWAPI::Position(b.finalPosition));
             }
             // if this is not the first time we've sent this guy to build this
-            // it must be the case that something was in the way of building
+            // it must be the case that something was in the way
             else if (b.buildCommandGiven)
             {
                 // tell worker manager the unit we had is not needed now, since we might not be able
@@ -261,26 +262,16 @@ void BuildingManager::checkForCompletedBuildings()
     removeBuildings(toRemove);
 }
 
-// COMPLETED
-bool BuildingManager::isEvolvedBuilding(BWAPI::UnitType type) 
-{
-    if (type == BWAPI::UnitTypes::Zerg_Sunken_Colony ||
-        type == BWAPI::UnitTypes::Zerg_Spore_Colony ||
-        type == BWAPI::UnitTypes::Zerg_Lair ||
-        type == BWAPI::UnitTypes::Zerg_Hive ||
-        type == BWAPI::UnitTypes::Zerg_Greater_Spire)
-    {
-        return true;
-    }
-
-    return false;
-}
-
 // add a new building to be constructed
 void BuildingManager::addBuildingTask(BWAPI::UnitType type, BWAPI::TilePosition desiredLocation, bool isGasSteal)
 {
-    _reservedMinerals += type.mineralPrice();
-    _reservedGas	     += type.gasPrice();
+	// DEBUG
+	//if (type == BWAPI::UnitTypes::Zerg_Creep_Colony) {
+	//	BWAPI::Broodwar->printf("creep colony queued");
+	//}
+
+    _reservedMinerals	+= type.mineralPrice();
+    _reservedGas		+= type.gasPrice();
 
     Building b(type, desiredLocation);
     b.isGasSteal = isGasSteal;
@@ -394,9 +385,12 @@ std::vector<BWAPI::UnitType> BuildingManager::buildingsQueued()
 
 BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
 {
-    int numPylons = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Protoss_Pylon);
+	// DEBUG
+	//if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony) {
+	//	BWAPI::Broodwar->printf("creep colony located");
+	//}
 
-    if (b.isGasSteal)
+	if (b.isGasSteal)
     {
         BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
         UAB_ASSERT(enemyBaseLocation,"Should have enemy base location before attempting gas steal");
@@ -409,33 +403,38 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
         }
     }
 
-    if (b.type.requiresPsi() && numPylons == 0)
-    {
-        return BWAPI::TilePositions::None;
-    }
+	int numPylons = BWAPI::Broodwar->self()->completedUnitCount(BWAPI::UnitTypes::Protoss_Pylon);
+	if (b.type.requiresPsi() && numPylons == 0)
+	{
+		return BWAPI::TilePositions::None;
+	}
 
-    if (b.type.isRefinery())
-    {
-        return BuildingPlacer::Instance().getRefineryPosition();
-    }
+	if (b.type.isRefinery())
+	{
+		return BuildingPlacer::Instance().getRefineryPosition();
+	}
 
-    if (b.type.isResourceDepot())
-    {
-        // get the location 
-        BWAPI::TilePosition tile = MapTools::Instance().getNextExpansion();
+	if (b.type.isResourceDepot())
+	{
+		return MapTools::Instance().getNextExpansion();
+	}
 
-        return tile;
-    }
-
-    // set the building padding specifically
-    int distance = b.type == BWAPI::UnitTypes::Protoss_Photon_Cannon ? 0 : Config::Macro::BuildingSpacing;
-    if (b.type == BWAPI::UnitTypes::Protoss_Pylon && (numPylons < 3))
+    int distance = Config::Macro::BuildingSpacing;
+	if (b.type == BWAPI::UnitTypes::Protoss_Photon_Cannon || b.type == BWAPI::UnitTypes::Zerg_Creep_Colony) {
+		// Pack defenses tightly together.
+		distance = 0;
+		// Get a position toward the choke.
+		// TODO DISABLED because it is way too slow; fix and then use
+		// return BuildingPlacer::Instance().getDefenseBuildLocation(b, distance);
+	}
+	else if (b.type == BWAPI::UnitTypes::Protoss_Pylon && (numPylons < 3))
     {
+		// Early pylons may be spaced differently than other buildings.
         distance = Config::Macro::PylonSpacing;
-    }
+	}
 
-    // get a position within our region
-    return BuildingPlacer::Instance().getBuildLocationNear(b,distance,false);
+	// Get a position within our region.
+	return BuildingPlacer::Instance().getBuildLocationNear(b, distance);
 }
 
 void BuildingManager::removeBuildings(const std::vector<Building> & toRemove)

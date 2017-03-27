@@ -238,6 +238,11 @@ BWAPI::Unit WorkerManager::getClosestMineralWorkerTo(BWAPI::Unit enemyUnit)
         if (workerData.getWorkerJob(worker) == WorkerData::Minerals) 
 		{
 			double dist = worker->getDistance(enemyUnit);
+			if (worker->isCarryingMinerals() || worker->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				dist += 40;
+			}
 
             if (!closestMineralWorker || dist < closestDist)
             {
@@ -360,6 +365,12 @@ BWAPI::Unit WorkerManager::getGasWorker(BWAPI::Unit refinery)
 		if (workerData.getWorkerJob(unit) == WorkerData::Minerals)
 		{
 			double distance = unit->getDistance(refinery);
+			if (unit->isCarryingMinerals() || unit->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				distance += 40;
+			}
+
 			if (!closestWorker || distance < closestDistance)
 			{
 				closestWorker = unit;
@@ -409,6 +420,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = unit->getDistance(BWAPI::Position(b.finalPosition));
+			if (unit->isCarryingMinerals() || unit->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				distance += 40;
+			}
 			if (!closestMiningWorker || distance < closestMiningWorkerDistance)
 			{
 				closestMiningWorker = unit;
@@ -421,6 +437,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = unit->getDistance(BWAPI::Position(b.finalPosition));
+			if (unit->isCarryingMinerals() || unit->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				distance += 40;
+			}
 			if (!closestMovingWorker || distance < closestMovingWorkerDistance)
 			{
 				closestMovingWorker = unit;
@@ -438,7 +459,6 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		workerData.setWorkerJob(chosenWorker, WorkerData::Build, b.type);
 	}
 
-	// return the worker
 	return chosenWorker;
 }
 
@@ -467,6 +487,11 @@ BWAPI::Unit WorkerManager::getMoveWorker(BWAPI::Position p)
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = unit->getDistance(p);
+			if (unit->isCarryingMinerals() || unit->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				distance += 40;
+			}
 			if (!closestWorker || distance < closestDistance)
 			{
 				closestWorker = unit;
@@ -496,6 +521,11 @@ void WorkerManager::setMoveWorker(int mineralsNeeded, int gasNeeded, BWAPI::Posi
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = unit->getDistance(p);
+			if (unit->isCarryingMinerals() || unit->isCarryingGas()) {
+				// If it has cargo, pretend it is farther away.
+				// That way we prefer empty workers and lose less cargo.
+				distance += 40;
+			}
 			if (!closestWorker || distance < closestDistance)
 			{
 				closestWorker = unit;

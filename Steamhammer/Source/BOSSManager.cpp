@@ -36,6 +36,7 @@ void BOSSManager::startNewSearch(const std::vector<MetaPair> & goalUnits)
                         + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Lair)
                         + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hive);
 
+	// TODO these are both solvable problems :-/
     if (numWorkers == 0)
     {
         _previousStatus = "\x08No Workers :(";

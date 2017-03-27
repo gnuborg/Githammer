@@ -274,7 +274,7 @@ bool GameState::isLegal(const ActionType & action) const
         return false;
     }
 
-    // TODO: require an extra for refineries byt not buildings
+    // TODO: require an extra for refineries but not buildings
     // rules for buildings which are built by workers
     if (action.isBuilding() && !action.isMorphed() && !action.isAddon())
     {
@@ -302,7 +302,7 @@ bool GameState::isLegal(const ActionType & action) const
         return false;
     }
 
-    // if we have no mineral income we'll never have a minerla unit
+    // if we have no mineral income we'll never have a mineral unit
     if (!canAffordMinerals(action) && !_units.hasMineralIncome())
     {
         return false;
